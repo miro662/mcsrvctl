@@ -142,3 +142,11 @@ class NewServerProcess(ServerProcess):
         ServerProcess._lockfile_delete()
         self._status = ServerProcess.OFF
     
+    @property
+    def status(self):
+        """Returns current server status
+        """
+        if self.process.returncode:
+            self._status = ServerProcess.OFF
+            return ServerProcess.OFF
+        return self._status
