@@ -2,6 +2,7 @@ import asyncio
 import os
 import re
 import psutil
+import sys
 
 class ServerProcess:
     """Base class for all server process wrappers
@@ -38,15 +39,17 @@ class ServerProcess:
             pid = int(pid_s)
 
             # Check if process with PID exists and is Minecraft server; otherwise return None and delete PID-lock
-            try:
-                p = psutil.Process(pid)
-                if p.name != "java":
-                    ServerProcess._lockfile_delete()
-                    return None
-            except psutil.NoSuchProcess:
+            p = psutil.Process(pid)
+            if p.name() != "java":
+                print("lock.pid contains PID of process that is not Minecraft server. Removing lock...", file=sys.stderr)
                 ServerProcess._lockfile_delete()
                 return None
             return int(pid_s)
+        except psutil.NoSuchProcess:
+            # There is no such process (lock.pid is corrupted, this should not happen!)
+            print("lock.pid contains PID of process that does not exist. Removing lock...", file=sys.stderr)
+            ServerProcess._lockfile_delete()
+            return None
         except FileNotFoundError:
             return None
 
@@ -83,6 +86,7 @@ class NewServerProcess(ServerProcess):
         # Check if server is already running
         if ServerProcess._check_lock():
             raise ServerAlreadyRunningError
+            return
 
         # Prepare starting command and launch server's process
         server_cmd="java"
