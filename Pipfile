@@ -10,6 +10,7 @@ click = "*"
 [dev-packages]
 pylint = "*"
 rope = "*"
+asynctest = "*"
 
 [requires]
 python_version = "3.7"
